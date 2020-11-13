@@ -1,0 +1,71 @@
+function fix_ui_behaviour( ) {
+    for(var i in UI) {
+        if(!~i.indexOf("Add"))
+            continue;
+
+        (function(cur) {
+            UI[i] = function() {
+                cur.apply(this, Array.prototype.slice.call(arguments));
+                return arguments[0].concat(arguments[1]);
+            }
+        }(UI[i]));
+    }
+}
+
+fix_ui_behaviour(  );
+
+/* tables for keeping our values */
+const default_config = {
+    speed: 5, // speed in seconds 
+    board_size: 500, // base size
+    board_x: 670, // base x
+    board_y: 350, // base y
+}
+
+const snake = {
+    colour: [0,255,0,205], // color of the snake
+    length: 10, // snakes base length
+    speed: 5  // snakes base speed
+}
+
+const food = {
+    max: 5, // max amount of food 
+    food_colour: [255,0,0,205] // color of the food
+}
+
+const keys = {
+    up: 0x26, // up arrow key
+    down: 0x28, // down arrow key
+    right: 0x27, // right arrow key
+    left: 0x25 // left arrow key
+}
+ 
+// all menu element paths 
+const subtab = UI.AddSubTab( [ "Misc.", "SUBTAB_MGR" ], "Snake")
+const path = [ "Misc.", "Snake", "Snake" ] 
+const enable = UI.AddCheckbox( path, "Enable Game" )
+
+function on_paint(  ) {
+
+}
+
+movement.input = function(  ) {
+
+}
+
+render.game_board = function(  ) { /*  Function for rendering the game board */
+    Render.Rect( default_config.board_x , default_config.board_y , default_config.board_size + 1 , default_config.board_size + 1 , [ 255,255,255,255 ] )
+    Render.FilledRect( default_config.board_x + 1 , default_config.board_y + 1 , default_config.board_size - 1 , default_config.board_size - 1 , [ 0,0,0,255 ] )
+}
+
+render.snake = function( x, y, length, color ) {
+
+}
+
+render.food = function( x, y, max, color ) {
+
+}
+
+
+
+Cheat.RegisterCallback( "Draw", "on_paint" )
