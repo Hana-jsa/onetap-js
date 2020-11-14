@@ -20,11 +20,11 @@ fix_ui_behaviour(  );
 // end libraries
 
 // tables for keeping our values
-const config = { 
+const config = {
     board_size: 500, // base size
     board_x: 670, // base x
     board_y: 350, // base y
-    score: 0, // players score 
+    score: 0, // players score
     drag: { // info about dragging
         active: false,
         difference: { // stores delta used to do proper dragging
@@ -44,7 +44,7 @@ const snake = {
 }
 
 const food = {
-    max: 5, // max amount of food 
+    max: 5, // max amount of food
     color: [ 255, 0, 0, 205], // color of the food
     pos: [  ], // all positions of food
     delay: 0, // delay on food timer
@@ -60,11 +60,8 @@ const keys = {
     down: 0x28 // down arrow key
 }
 // end tables
- 
-// all menu element paths 
-const subtab = UI.AddSubTab( [ "Misc.", "SUBTAB_MGR" ], "Snake")
-const path = [ "Misc.", "Snake", "Snake" ] 
-const enable = UI.AddCheckbox( path, "Enable Game" )
+
+// all menu element paths
 const menu_key = UI.AddHotkey( [ "Config", "Scripts", "Keys", "JS Keybinds" ], "Show game board", "Snake open")
 // end ui stuff
 
@@ -93,9 +90,9 @@ function normalize_position( pos ) {
 }
 // end misc functions
 
-//  render functions 
+//  render functions
 Render.snake = function(  ) {
- 
+
     // store time
     snake.curr_time = Globals.Curtime()
     snake.delay = 0.1
@@ -109,7 +106,7 @@ Render.snake = function(  ) {
         if ( inputs.left == true || inputs.up == true || inputs.right == true || inputs.down == true ) {
 
             // get the first snake tile, that is, the head of the snake
-            var pos = snake.pos[ 0 ] 
+            var pos = snake.pos[ 0 ]
 
             // get how much we'll move based on direction
             const x_increment = inputs.left ? -1 : inputs.right ? 1 : 0;
@@ -135,11 +132,11 @@ Render.snake = function(  ) {
                     // if so, increment score and delete this food/cherry
                     snake.size++
                     config.score++
-                    
+                  
                     food.pos.splice( f, 1 )
                     break;
-                    /* 
-                    * when snake hits the food we 
+                    /*
+                    * when snake hits the food we
                     * Increase the size of snake by 1
                     * Increase the score by 1
                     * And then delete the food
@@ -164,7 +161,7 @@ Render.snake = function(  ) {
                     config.score = 0;
 
                     inputs.left = false
-                    inputs.up = false 
+                    inputs.up = false
                     inputs.right = false
                     inputs.down = false
                 }
@@ -190,7 +187,7 @@ Render.food = function(  ) {
 
     // store time
     food.curr_time = Globals.Curtime()
-    food.delay = 7 + Math.floor( Math.random(  ) * 6 ); 
+    food.delay = 3 + Math.floor( Math.random(  ) * 6 );
 
     // check if we should update here
     if ( food.curr_time > food.delay + food.old_curr_time ) {
@@ -255,7 +252,7 @@ Render.status_bar = function( font ) {
     // rendering the score text
     Render.String(config.board_x + 5, config.board_y - 40, 0, "Score: " + config.score.toString(), [ 235, 235, 235, 205 ], font)
 
-    // rendering the title 
+    // rendering the title
     Render.String(config.board_x + config.board_size / 2, config.board_y - 40, 1, "Snake.js", [ 235, 235, 235, 205 ], font)
 }
 // end render functions
@@ -267,7 +264,7 @@ const inputs = { left: false, up: false, right: false, down: false }
 Input.movement = function(  ) {
 
     // if we're pressing the left arrow, update input to the left
-    if ( Input.IsKeyPressed( keys.left ) ) 
+    if ( Input.IsKeyPressed( keys.left ) )
         inputs = { left: true, up: false, right: false, down: false }
 
     // if we're pressing the up arrow, update input to upwards
@@ -293,21 +290,21 @@ Input.movement = function(  ) {
 function on_paint(  ) {
     // create a font
     const main_font = Render.AddFont("seguisb", 25, 000);
-    
+  
     // check if board is being rendered
     if ( UI.GetValue( menu_key ) ) {
         // handle input
         Input.movement(  )
 
         // render the board
-        Render.game_board(  ) 
+        Render.game_board(  )
         Render.status_bar( main_font )
-        
+      
         // render the game elements
         Render.snake(  )
         Render.food(  )
-    } 
-} 
+    }
+}
 // ending actual function
 
 // callbacks
