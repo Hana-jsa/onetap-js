@@ -1,3 +1,7 @@
+// title: snake.js
+// description: recreates the old-school snake game for onetap v4
+
+// libraries
 function fix_ui_behaviour( ) {
     for(var i in UI) {
         if(!~i.indexOf("Add"))
@@ -13,59 +17,299 @@ function fix_ui_behaviour( ) {
 }
 
 fix_ui_behaviour(  );
+// end libraries
 
-/* tables for keeping our values */
-const default_config = {
-    speed: 5, // speed in seconds 
+// tables for keeping our values
+const config = { 
     board_size: 500, // base size
     board_x: 670, // base x
     board_y: 350, // base y
+    score: 0, // players score 
+    drag: { // info about dragging
+        active: false,
+        difference: { // stores delta used to do proper dragging
+            x: 0, // x delta
+            y: 0 // y delta
+        }
+    }
 }
 
 const snake = {
-    colour: [0,255,0,205], // color of the snake
-    length: 10, // snakes base length
-    speed: 5  // snakes base speed
+    color: [ 0, 255, 0, 205 ], // color of the snake
+    size: 5, // snakes base size
+    pos: [ [ 25, 25 ] ], // all positions of the snake
+    delay: 0, // delay on snake movements
+    curr_time: 0, // curr time for snake
+    old_curr_time: 0 // last curr time
 }
 
 const food = {
     max: 5, // max amount of food 
-    food_colour: [255,0,0,205] // color of the food
+    color: [ 255, 0, 0, 205], // color of the food
+    pos: [  ], // all positions of food
+    delay: 0, // delay on food timer
+    curr_time: 0, // curr time for food
+    old_curr_time: 0 // last currtime
 }
 
 const keys = {
+    mouse1: 0x01, // mouse 1 button
+    left: 0x25, // left arrow key
     up: 0x26, // up arrow key
-    down: 0x28, // down arrow key
     right: 0x27, // right arrow key
-    left: 0x25 // left arrow key
+    down: 0x28 // down arrow key
 }
+// end tables
  
 // all menu element paths 
 const subtab = UI.AddSubTab( [ "Misc.", "SUBTAB_MGR" ], "Snake")
 const path = [ "Misc.", "Snake", "Snake" ] 
 const enable = UI.AddCheckbox( path, "Enable Game" )
+const menu_key = UI.AddHotkey( [ "Config", "Scripts", "Keys", "JS Keybinds" ], "Show game board", "Snake open")
+// end ui stuff
 
+// misc functions
+function point_inside_region( point, x, y, w, h ) {
+    // check if a point is inside a certain boundary
+    return point[ 0 ] >= x && point[ 1 ] >= y && point[ 0 ] <= x + w && point[ 1 ] <= y + h;
+}
+
+function normalize_position( pos ) {
+    // if x position is lower than 0, reset position to the right
+    if ( pos[ 0 ] < 0 )
+        pos[ 0 ] += config.board_size / 10;
+
+    // same with y position, reset position to the bottom
+    if ( pos[ 1 ] < 0 )
+        pos[ 1 ] += config.board_size / 10;
+
+    // if x position is lower than the max tile position, reset position to the left
+    // same with y position, reset position to the top
+    pos[ 0 ] %= config.board_size / 10;
+    pos[ 1 ] %= config.board_size / 10;
+
+    // return normalized position
+    return pos;
+}
+// end misc functions
+
+//  render functions 
+Render.snake = function(  ) {
+ 
+    // store time
+    snake.curr_time = Globals.Curtime()
+    snake.delay = 0.1
+
+    // check if we should update here
+    if ( snake.curr_time > snake.delay + snake.old_curr_time ) {
+        // save current time
+        snake.old_curr_time = snake.curr_time
+
+        // check if were moving
+        if ( inputs.left == true || inputs.up == true || inputs.right == true || inputs.down == true ) {
+
+            // get the first snake tile, that is, the head of the snake
+            var pos = snake.pos[ 0 ] 
+
+            // get how much we'll move based on direction
+            const x_increment = inputs.left ? -1 : inputs.right ? 1 : 0;
+            const y_increment = inputs.up ? -1 : inputs.down ? 1 : 0;
+
+            // calculate we're we'll be in the next tick
+            const end = [ ( pos[ 0 ] + x_increment % ( 50 ) ), ( pos[ 1 ] + y_increment ) % ( 50 ) ];
+
+            // normalize the position to make sure we dont go out of bounds
+            // and push it to the front of the position array
+            snake.pos.unshift( normalize_position( end ) )
+
+            // get the next position
+            pos = end
+
+            // loop through every food/cherry position
+            for ( var f = 0; f < food.pos.length; f++ ) {
+                // get current food/cherry position
+                var food_pos = food.pos[ f ]
+
+                // check if we're colliding with a food/cherry
+                if ( food_pos[ 0 ] == pos[ 0 ] && food_pos[ 1 ] == pos[ 1 ] ) {
+                    // if so, increment score and delete this food/cherry
+                    snake.size++
+                    config.score++
+                    
+                    food.pos.splice( f, 1 )
+                    break;
+                    /* 
+                    * when snake hits the food we 
+                    * Increase the size of snake by 1
+                    * Increase the score by 1
+                    * And then delete the food
+                    */
+                }
+            }
+
+            // loop through every snake position
+            // skip the first one because that's our head
+            for ( var s = 1; s < snake.pos.length; s++ ) {
+                // get current snake position
+                var snake_pos = snake.pos[ s ]
+
+                // check if we're colliding with one of our positions
+                if ( snake_pos[ 0 ] == pos[ 0 ] && snake_pos[ 1 ] == pos[ 1 ] ) {
+                    // reset everything
+                    snake.pos = [ [ 25,25 ] ]
+                    snake.size = 5
+
+                    food.pos = [  ]
+
+                    config.score = 0;
+
+                    inputs.left = false
+                    inputs.up = false 
+                    inputs.right = false
+                    inputs.down = false
+                }
+            }
+
+            // check if we have more positions than the size of our snake
+            // this means we're exceeding the maximum amount of positions
+            if ( snake.pos.length > snake.size ) {
+                // delete the last position
+                snake.pos.pop(  );
+            }
+        }
+    }
+
+    // loop through every position
+    for ( var i = 0; i < snake.pos.length; i++ ) {
+        // render snake
+        Render.FilledRect( config.board_x + 1 + ( snake.pos[ i ][ 0 ] * 10 ),  config.board_y + 1 + ( snake.pos[ i ][ 1 ] * 10 ), 9, 9, snake.color )
+    }
+}
+
+Render.food = function(  ) {
+
+    // store time
+    food.curr_time = Globals.Curtime()
+    food.delay = 7 + Math.floor( Math.random(  ) * 6 ); 
+
+    // check if we should update here
+    if ( food.curr_time > food.delay + food.old_curr_time ) {
+        // save current time
+        food.old_curr_time = food.curr_time
+
+        // check if we haven't reached the maximum amount of cherries
+        if ( food.pos.length < food.max ) {
+            // generate a random position for this cherry
+            var pos = [ Math.floor( Math.random(  ) * ( config.board_size / 10 ) ), Math.floor( Math.random(  ) * ( config.board_size / 10 ) ) ]
+
+            // add a new cherry to the board
+            food.pos.push( pos )
+        }
+    }
+
+    // loop through every cherry
+    for ( var i = 0; i < food.pos.length; i++ ) {
+        // render cherry
+        Render.FilledRect( config.board_x + 1 + ( food.pos[ i ][ 0 ] * 10 ),  config.board_y + 1 + ( food.pos[ i ][ 1 ] * 10 ), 9, 9, food.color )
+    }
+
+}
+
+Render.game_board = function(  ) {
+
+    // if we're not pressing mouse1, disable dragging
+    if ( !Input.IsKeyPressed( keys.mouse1 ) ) {
+        config.drag.active = false;
+    }
+
+    // get our cursor position
+    const mouse_pos = Input.GetCursorPosition(  );
+
+    // check if we're dragging the window
+    if ( Input.IsKeyPressed( keys.mouse1 ) && point_inside_region( mouse_pos, config.board_x, config.board_y - 40, config.board_size, 35 ) || config.drag.active ) {
+        // we're now dragging!
+        config.drag.active = true;
+
+        // update the board's position
+        config.board_x = mouse_pos[ 0 ] - config.drag.difference.x;
+        config.board_y = mouse_pos[ 1 ] - config.drag.difference.y;
+    }
+
+    // we're not dragging
+    else {
+        // update the deltas
+        config.drag.difference.x = mouse_pos[ 0 ] - config.board_x;
+        config.drag.difference.y = mouse_pos[ 1 ] - config.board_y;
+    }
+
+    // render the game board
+    Render.Rect( config.board_x , config.board_y , config.board_size + 1 , config.board_size + 1 , [ 255,255,255,255 ] )
+    Render.FilledRect( config.board_x + 1 , config.board_y + 1 , config.board_size - 1 , config.board_size - 1 , [ 25, 25, 25,255 ] )
+}
+
+Render.status_bar = function( font ) {
+    // rendering the bar for text to be displayed on
+    Render.Rect( config.board_x, config.board_y - 40, config.board_size + 1, 35 , [ 255,255,255,255 ] )
+    Render.FilledRect( config.board_x + 1 , config.board_y - 39,  config.board_size - 1, 33 , [ 25, 25, 25, 255 ] )
+
+    // rendering the score text
+    Render.String(config.board_x + 5, config.board_y - 40, 0, "Score: " + config.score.toString(), [ 235, 235, 235, 205 ], font)
+
+    // rendering the title 
+    Render.String(config.board_x + config.board_size / 2, config.board_y - 40, 1, "Snake.js", [ 235, 235, 235, 205 ], font)
+}
+// end render functions
+
+// input functions
+// create an object to store input data
+const inputs = { left: false, up: false, right: false, down: false }
+
+Input.movement = function(  ) {
+
+    // if we're pressing the left arrow, update input to the left
+    if ( Input.IsKeyPressed( keys.left ) ) 
+        inputs = { left: true, up: false, right: false, down: false }
+
+    // if we're pressing the up arrow, update input to upwards
+    if ( Input.IsKeyPressed( keys.up ) )
+        inputs = { left: false, up: true, right: false, down: false }
+
+    // if we're pressing the right arrow, update input to the right
+    if ( Input.IsKeyPressed( keys.right ) )
+        inputs = { left: false, up: false, right: true, down: false }
+
+    // if we're pressing the down arrow, update input to downwards
+    if ( Input.IsKeyPressed( keys.down ) )
+        inputs = { left: false, up: false, right: false, down: true }
+
+    // if the board isn't being rendered, cancel all input, pausing the game
+    if ( !UI.GetValue( menu_key ) )
+        inputs = { left: false, up: false, right: false, down: false }
+
+}
+// end input functions
+
+// actual function
 function on_paint(  ) {
+    // create a font
+    const main_font = Render.AddFont("seguisb", 25, 000);
+    
+    // check if board is being rendered
+    if ( UI.GetValue( menu_key ) ) {
+        // handle input
+        Input.movement(  )
 
-}
+        // render the board
+        Render.game_board(  ) 
+        Render.status_bar( main_font )
+        
+        // render the game elements
+        Render.snake(  )
+        Render.food(  )
+    } 
+} 
+// ending actual function
 
-movement.input = function(  ) {
-
-}
-
-render.game_board = function(  ) { /*  Function for rendering the game board */
-    Render.Rect( default_config.board_x , default_config.board_y , default_config.board_size + 1 , default_config.board_size + 1 , [ 255,255,255,255 ] )
-    Render.FilledRect( default_config.board_x + 1 , default_config.board_y + 1 , default_config.board_size - 1 , default_config.board_size - 1 , [ 0,0,0,255 ] )
-}
-
-render.snake = function( x, y, length, color ) {
-
-}
-
-render.food = function( x, y, max, color ) {
-
-}
-
-
-
+// callbacks
 Cheat.RegisterCallback( "Draw", "on_paint" )
+// end callbacks
