@@ -1,7 +1,7 @@
 
 function on_round_start( ) {
     const tag = "\n"
-    Local.SetClanTag( "⁣" + tag )
+    Local.SetClanTag( "onetap⁣" + tag )
 }
 
 function unload( ) {
