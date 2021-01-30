@@ -243,7 +243,7 @@ config_system.load = function( ) {
 /* region: menu */
 menu.render = function( ) {
     // update variables
-    menu.font = Render.AddFont( "Tahoma", 12, 500 );
+    menu.font = Render.GetFont( "Tahoma.ttf", 12, true );
     menu.open = config.test_hotkey[ 3 ];
 
     cursor.x = Input.GetCursorPosition( )[ 0 ], cursor.y = Input.GetCursorPosition( )[ 1 ];
