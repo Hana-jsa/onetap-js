@@ -56,7 +56,7 @@ function onCreateMove( ) {
 }
 
 function onDraw( ) {
-    const font = Render.AddFont( "Verdana", 24, 0 );
+    const font = Render.GetFont( "Verdana.ttf", 24, true );
 
     const x = Render.GetScreenSize( )[ 0 ], y = Render.GetScreenSize( )[ 1 ];
     const inverted = UI.GetValue( inverter );
