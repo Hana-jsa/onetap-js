@@ -112,6 +112,10 @@ function on_paint( ) {
     menu.render( );
 }
 
+function on_unload( ) {
+  input_system.enable_mouse_input( false );
+}
+
 /* region: input_system */
 input_system.update = function( ) {
     // loop thru all keys
@@ -1087,3 +1091,4 @@ var key_names = [ "-", "mouse1", "mouse2", "break", "mouse3", "mouse4", "mouse5"
 
 Cheat.RegisterCallback( "Draw", "on_paint" )
 Cheat.RegisterCallback( "CreateMove", "on_cmove" )
+Cheat.RegisterCallback( "Unload", "on_unload" )
