@@ -110,6 +110,7 @@ function on_cmove( ) {
 
 function on_paint( ) {
     menu.render( );
+    Cheat.example_func( );
 }
 
 function on_unload( ) {
@@ -955,6 +956,13 @@ menu.get_color = function( obj ) {
     return [ obj.r, obj.g, obj.b, obj.a ];
 }
 
+
+Cheat.example_func = function( ) {
+    if (!config.test_bool_enabled.value) 
+        return;   
+    
+    Cheat.Print("This will only run when test bool enabled is on")
+}
 Render.ShadowString = function( x, y, a, s, c, f ) {
     // get the shadow's alpha
     const alpha = Math.min(200, c[ 3 ] );
